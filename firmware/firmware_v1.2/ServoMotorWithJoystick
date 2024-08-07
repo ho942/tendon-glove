@@ -1,0 +1,63 @@
+
+
+#include <Servo.h>
+
+Servo myServo;
+int servo = 6;  // Declare the ~PWM Arduino pin number of the servomotor.
+
+#define SW 8
+#define joy_x A0
+#define joy_y A3
+
+
+void setup() {
+  // put your tup code here, to run once:
+  Serial.begin(19200);
+  pinMode(SW, INPUT_PULLUP);
+  pinMode(joy_x, INPUT);
+  pinMode(joy_y, INPUT);
+  myServo.attach(servo);
+  Serial.println("Strat!");
+}
+
+void loop() {
+  // joystick sensing -> Serial -> Unity
+  float joy_rx =analogRead(joy_x);
+  float joy_ry =analogRead(joy_y);
+
+  joy_rx = map(joy_rx,1,1024,-500,500);
+  joy_ry = map(joy_ry,1,1024,-500,500);
+
+  Serial.print(joy_rx);
+  Serial.print(",");
+  Serial.print(joy_ry);
+  Serial.print(",");
+  Serial.println(!digitalRead(SW));
+
+//motor control <- Serial <- Unity
+
+    if(Serial.available() > 0){
+    char data = Serial.read();
+  
+    if(data == '1'){
+      myServo.writeMicroseconds(500);
+    }
+    else if(data == '2'){
+      myServo.writeMicroseconds(1000);
+    }
+    else if(data == '3'){
+      myServo.writeMicroseconds(1500);
+    }
+    else if(data == '4'){
+      myServo.writeMicroseconds(2000);
+    }
+    else if(data == '5'){
+      myServo.writeMicroseconds(2500);
+    }
+    else{
+      Serial.println("Wrong Number");
+    }
+  }
+
+  }
+
