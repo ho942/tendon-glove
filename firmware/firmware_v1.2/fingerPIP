@@ -1,0 +1,47 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class fingerPIP : MonoBehaviour
+{
+    public float fingerInput2;
+    public GameObject MCPObject;
+    public float zRotation1;
+    public float zRotation;
+    private Quaternion lastRotation; // Last Rotation Save variable
+
+    // Update is called once per frame
+    void Update()
+    {
+        zRotation = MCPObject.transform.eulerAngles.z;
+        zRotation1 = transform.eulerAngles.z-zRotation;
+
+        // if(zRotation1<95&&zRotation1>86){
+        //      transform.eulerAngles = new Vector3(0,0,86);
+        //      horizontalInput=0;
+        // } else if (zRotation1>-10&&zRotation1<1){
+        //     transform.eulerAngles= new Vector3(0,0,1);
+        //     horizontalInput=0;
+        // }
+
+        if (SerialHandler.instance != null)
+            {
+                fingerInput2 = SerialHandler.instance.GetHorizontalInput();
+                if(zRotation>80){
+                    fingerInput2=0;
+                } else if (zRotation<0){
+                    fingerInput2=0;
+                }
+                
+                if (!SerialHandler.instance.GoGo()){
+                    lastRotation = transform.rotation; // Save current rotation
+                    transform.Rotate(0, 0, 0.008f * fingerInput2);
+                }
+                else{
+                     transform.rotation = lastRotation; // Restore to Last Rotation
+                     transform.Rotate(0, 0, 0.008f * fingerInput2);
+                }
+        }
+
+    }
+}
