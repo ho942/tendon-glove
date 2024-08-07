@@ -1,0 +1,53 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class fingerDIP : MonoBehaviour
+{
+    public float fingerInput3;
+    public GameObject MCPObject;
+    public GameObject PIPObject;
+    public float zRotation1;
+    public float zRotation2;
+    public float zRotation;
+
+     private Quaternion lastRotation; // Last Rotation Save variable
+
+    // Update is called once per frame
+    void Update()
+    {
+        zRotation = MCPObject.transform.eulerAngles.z;
+        zRotation1 = PIPObject.transform.eulerAngles.z-zRotation;
+        zRotation2 = transform.eulerAngles.z-zRotation1-zRotation;
+
+        // if(zRotation1<95&&zRotation1>86){
+        //      transform.eulerAngles = new Vector3(0,0,86);
+        //      horizontalInput=0;
+        // } else if (zRotation1>-10&&zRotation1<1){
+        //     transform.eulerAngles= new Vector3(0,0,1);
+        //     horizontalInput=0;
+        // }
+
+        if (SerialHandler.instance != null)
+            {
+                fingerInput3 = SerialHandler.instance.GetHorizontalInput();
+                if(zRotation>80){
+                    fingerInput3=0;
+                } else if (zRotation<0){
+                    fingerInput3=0;
+                }
+                if (!SerialHandler.instance.GoGo()){
+                    lastRotation = transform.rotation; // Save current rotation
+                    transform.Rotate(0, 0, 0.008f * fingerInput3);
+                }
+                else{
+                     transform.rotation = lastRotation; // Restore to Last Rotation
+                     transform.Rotate(0, 0, 0.008f * fingerInput3);
+                }
+                
+        }
+
+//zlotation과 rotation값이 불일치
+//  94.5~ 0 z축
+    }
+}
