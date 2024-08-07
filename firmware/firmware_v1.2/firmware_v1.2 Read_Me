@@ -1,0 +1,31 @@
+code structure
+
+<Unity>
+
+fingerMCP
+
+- horizontalInput = SerialHandler.instance.GetHorizontalInput(); : Receive joystick value sent by SerialHandler
+- Basic finger range adjustment
+
+fingerPIP, fingerDIP :
+
+- horizontalInput = SerialHandler.instance.GetHorizontalInput(); : Receive joystick value sent by SerialHandler
+- Adjust the basic finger range to move only 80 to 0 based on the angle of the finger MCP
+
+SerialHandler
+
+- Get Joystick Arduino Price
+- Grab value that bounces from Arduino value (for joysticks)
+- OnTriggerEnter(Collider other) :
+-   1) Send a signal to Arduino in case of contact
+-     SendSignals: Send a Great Climate Signal
+-     SendSignal (string signal): Code that sends signals entering signal to Arduino.
+-   2) To prevent any further catching during contact (coded by hand because the rigid was not set)
+-     If the if horizontalInput is positive at the time of contact, insert the horizontalInput of the SerialHandler and make it 0.
+
+<Arduino>
+- Serial.print:sending serial communication
+- analogRead: Read signal from joystick
+- Map: Take the signal separately from -500 to 500
+- myServo.writeMicroseconds (500):Motor running
+- data = Serial.read(): Read values entered into serial communication
