@@ -1,0 +1,40 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class fingerMCP : MonoBehaviour
+{
+    public float fingerInput1;
+    public float zRotation;
+
+    private Quaternion lastRotation; // Last Rotation Save variable
+    // Update is called once per frame
+    void Update()
+    {
+        zRotation = transform.eulerAngles.z;
+        if(180>zRotation&&zRotation>90){
+             transform.eulerAngles = new Vector3(0,0,90);
+             fingerInput1=0;
+        } else if (zRotation>300&&zRotation<355){
+            transform.eulerAngles = new Vector3(0,0,-5);
+            zRotation= 355;
+            fingerInput1=0;
+        }  
+        
+        if (SerialHandler.instance != null)
+            {
+                fingerInput1 = SerialHandler.instance.GetHorizontalInput();
+                
+                if (!SerialHandler.instance.GoGo()){
+                    lastRotation = transform.rotation; // Save current rotation
+                    transform.Rotate(0, 0, 0.01f * fingerInput1);
+                }
+                else{
+                     transform.rotation = lastRotation; // Restore to Last Rotation
+                     transform.Rotate(0, 0, 0.01f * fingerInput1);
+                }
+        }
+        
+
+    }
+}
