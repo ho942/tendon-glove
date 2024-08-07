@@ -1,0 +1,124 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.IO.Ports;
+
+public class SerialHandler : MonoBehaviour
+{
+    private SerialPort data_stream = new SerialPort("COM7", 19200);
+    public string receivedString;
+    public string[] datas;
+    public float horizontalInput;
+
+    public static SerialHandler instance;
+
+    public bool shouldResetHorizontalInput = false; // Flag to set the value to zero when contact occurs
+
+    void Awake()
+    {
+        // Singleton Instance Settings
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject); //Maintaining Objects in Scene Switching
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        data_stream.Open();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (data_stream.IsOpen)
+        {
+            try
+            {
+                receivedString = data_stream.ReadLine();
+                datas = receivedString.Split(',');
+
+                float parsedValue = float.Parse(datas[1]);
+
+                //-2~-3 Bouncing value. Bad joystick
+                if(parsedValue<10 && parsedValue>-10){
+                    horizontalInput=0;
+                } else{
+                    horizontalInput = parsedValue;
+                }
+
+                if (shouldResetHorizontalInput && horizontalInput > 0)
+                {
+                    horizontalInput = 0;
+                }
+
+
+            }
+            catch (System.Exception)
+            {
+               // Data Read Error Handling
+            }
+        }
+    }
+
+    public float GetHorizontalInput()
+    {
+        return  horizontalInput;
+    }
+
+    public bool GoGo()
+    {
+        return shouldResetHorizontalInput;
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("finger"))
+        {
+            Debug.Log("end");
+
+            if (data_stream.IsOpen)  
+            {
+                StartCoroutine(SendSignals());
+                // data_stream.Write("5"); // Send signal to Arduino
+
+            }
+
+            //Set the flag in case of contact
+            shouldResetHorizontalInput = true;
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("finger"))
+        {
+            // Unflag at the end of contact
+            shouldResetHorizontalInput = false;
+        }
+    }
+
+    IEnumerator SendSignals()
+    {
+        // Signal "1" in 5 seconds
+        yield return new WaitForSeconds(5f);
+        SendSignal("1");
+
+        // Signal "5" in 10 seconds
+        yield return new WaitForSeconds(5f); // Wait an additional 5 seconds (10 seconds in total)
+        SendSignal("5");
+    }
+
+    void SendSignal(string signal)
+    {
+        // Make sure the port is open before sending a signal
+        if (data_stream != null && data_stream.IsOpen)
+        {
+            data_stream.Write(signal); // Send a signal to Arduino
+        }
+    }
+}
