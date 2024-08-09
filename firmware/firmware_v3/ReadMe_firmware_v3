@@ -1,0 +1,3 @@
+//these codes are for control unity and arduino by potentiometer.
+//when control potentiometer, you can control the fingers in unity. 
+//And In unity, if there happen touch, servo motor actions and hand grabs the object.
