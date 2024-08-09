@@ -1,0 +1,136 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.IO.Ports;
+
+public class SerialHandler : MonoBehaviour
+{
+    private SerialPort data_stream = new SerialPort("COM17", 19200);
+    public string receivedString;
+    public string[] datas;
+    public float parsedValue;
+    public float parsedValue1;
+    public float valueThread;
+
+    public static SerialHandler instance;
+
+    public bool touchThread = false; //  Flag to set the value to 0 upon contact
+
+    void Awake()
+    {
+        // Setting up the Singleton instance
+        if (instance == null)
+        {
+            instance = this;
+            DontDestroyOnLoad(gameObject); // Keep the object across scene transitions
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        data_stream.Open();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (data_stream.IsOpen)
+        {
+            try
+            {
+                    receivedString = data_stream.ReadLine();
+                    parsedValue1= float.Parse(receivedString);
+                    
+
+
+                    if(touchThread&&parsedValue1>valueThread)
+                    {
+                        parsedValue=valueThread;
+                    }
+                    else{
+                        parsedValue=parsedValue1;
+                    }
+                // if(!touchThread){
+                //     parsedValue= float.Parse(receivedString);
+                // }
+                // else{
+                //     if(float.Parse(receivedString)<=valueThread)
+                //     {
+                //         valueThread =90;
+                //         parsedValue= float.Parse(receivedString);
+                //     }
+                // }
+ 
+
+
+            }
+            catch (System.Exception)
+            {
+                // Handle data reading errors
+            }
+        }
+    }
+
+    public float GetParsedValue()
+    {
+        return parsedValue;
+    }
+
+    public bool GoGo()
+    {
+        return touchThread;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("finger"))
+        {
+
+            // // Set the flag when contact occurs
+                touchThread = true;
+                valueThread = parsedValue1;
+
+            Debug.Log("end");
+
+            if (data_stream.IsOpen)  
+            {
+                StartCoroutine(SendSignals());
+
+
+            }
+        }
+    }
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("finger"))
+        {
+            // // Clear the flag when contact ends
+            touchThread = false;
+        }
+    }
+
+    IEnumerator SendSignals()
+    {
+        // Send the "1" signal after 5 seconds
+        yield return new WaitForSeconds(5f);
+        SendSignal("1");
+
+        // Send the "5" signal after 10 seconds
+        yield return new WaitForSeconds(5f); // Wait an additional 5 seconds (total 10 seconds)
+        SendSignal("5");
+    }
+
+    void SendSignal(string signal)
+    {
+        // Check if the port is open before sending the signal
+        if (data_stream != null && data_stream.IsOpen)
+        {
+            data_stream.Write(signal); // Send the signal to the Arduino
+        }
+    }
+}
